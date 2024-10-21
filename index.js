@@ -68,13 +68,7 @@ class Loggy {
     const willExit = this.exitOnFatal && ['fatal', 'emerg', 'emergency'].includes(event.level);
 
     if (this.throttleInterval <= 0) {
-      fetch(`${this.remote}/log/${this.app}`, {
-        method: 'POST',
-        mode: 'no-cors',
-        keepalive: true,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event),
-      });
+      this.send(event);
     } else { // Add to buffer and wait
       this.buffer.push(event);
       if (willExit || immediate || this.buffer.length >= this.throttleLimit) {
@@ -93,15 +87,18 @@ class Loggy {
       process.exit(1);
     }
   }
-  sendBuffered() {
-    clearTimeout(this.timeout);
-    fetch(`${this.remote}/log/${this.app}`, {
+  send(data) {
+    fetch(`${this.remote}${this.remote.endsWith('/') ? '' : '/'}log/${this.app}`, {
       method: 'POST',
       mode: 'no-cors',
       keepalive: true,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(this.buffer),
+      body: JSON.stringify(data),
     });
+  }
+  sendBuffered() {
+    clearTimeout(this.timeout);
+    this.send(this.buffer);
     this.buffer = [];
     this.timeout = null;
   }
@@ -117,7 +114,7 @@ class Loggy {
     }
     this.log(label, Object.assign({
       level: 'timing',
-      value: (Date.now() - timer.st) * 1000.0, // In seconds
+      value: (Date.now() - timer.st) / 1000.0, // In seconds
     }, timer.fields, fields));
   }
   timeEnd(label = 'default', fields = {}) {

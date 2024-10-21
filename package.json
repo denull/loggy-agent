@@ -1,6 +1,6 @@
 {
   "name": "loggy-agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple logging library intended to be used as an agent for Loggy service",
   "main": "index.js",
   "scripts": {
